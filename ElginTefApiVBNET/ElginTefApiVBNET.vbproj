@@ -68,6 +68,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Administrativa.xaml.vb">
+      <DependentUpon>Administrativa.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ColetaPinPad.xaml.vb">
+      <DependentUpon>ColetaPinPad.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ControleApi.vb" />
+    <Compile Include="Pagamento.xaml.vb">
+      <DependentUpon>Pagamento.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Administrativa.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ColetaPinPad.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -80,6 +98,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Pagamento.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Threading.Tasks" />

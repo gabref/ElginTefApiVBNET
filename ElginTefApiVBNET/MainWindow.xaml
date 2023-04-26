@@ -18,7 +18,6 @@
             <ComboBoxItem Content="Operações de Coleta PinPad"  />
         </ComboBox>
         <Button x:Name="BtnCarregar" Content="Carreagar Funções" HorizontalAlignment="Left" Margin="59,139,0,0" VerticalAlignment="Top" Width="208" Height="40" IsDefault="True"  />
-        <!-- Click="BtnCarregar_Click" -->
         
     </Grid>
 </Window>
