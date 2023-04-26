@@ -119,39 +119,39 @@ Public Class Pagamento
     End Sub
 
     Public Sub printUi(msg As String)
-        Dim unused = Dispatcher.Invoke(Function()
-                                           lblOperador1.Visibility = Visibility.Hidden
-                                           txtOperador.Visibility = Visibility.Hidden
-                                           btnOk.Visibility = Visibility.Hidden
-                                           btnCancelar.Visibility = Visibility.Hidden
-                                           txtOperador.Visibility = Visibility.Hidden
-                                           imgQRCode.Visibility = Visibility.Hidden
+        Dispatcher.Invoke(Sub()
+                              lblOperador1.Visibility = Visibility.Hidden
+                              txtOperador.Visibility = Visibility.Hidden
+                              btnOk.Visibility = Visibility.Hidden
+                              btnCancelar.Visibility = Visibility.Hidden
+                              txtOperador.Visibility = Visibility.Hidden
+                              imgQRCode.Visibility = Visibility.Hidden
 
-                                           If msg.Contains("QRCODE;") Then
-                                               Dim start As Integer = msg.IndexOf(";") + 1
-                                               Dim [end] As Integer = msg.LastIndexOf(";")
-                                               Dim hexQrCodeString As String = msg.Substring(start, [end] - start)
-                                               ShowQRCode(hexQrCodeString)
-                                               imgQRCode.Visibility = Visibility.Visible
-                                               btnOk.Visibility = Visibility.Visible
-                                               btnCancelar.Visibility = Visibility.Visible
-                                           Else
-                                               lblOperador1.Content = msg
-                                               lblOperador1.Visibility = Visibility.Visible
-                                               Dim msgArray As String() = {"aguarde", "finalizada", "passagem", "cancelada", "iniciando confirmação"}
+                              If msg.Contains("QRCODE;") Then
+                                  Dim start As Integer = msg.IndexOf(";") + 1
+                                  Dim [end] As Integer = msg.LastIndexOf(";")
+                                  Dim hexQrCodeString As String = msg.Substring(start, [end] - start)
+                                  ShowQRCode(hexQrCodeString)
+                                  imgQRCode.Visibility = Visibility.Visible
+                                  btnOk.Visibility = Visibility.Visible
+                                  btnCancelar.Visibility = Visibility.Visible
+                              Else
+                                  lblOperador1.Content = msg
+                                  lblOperador1.Visibility = Visibility.Visible
+                                  Dim msgArray As String() = {"aguarde", "finalizada", "passagem", "cancelada", "iniciando confirmação"}
 
-                                               If Not msgArray.Any(AddressOf msg.ToLower().Contains) Then
-                                                   txtOperador.Visibility = Visibility.Visible
-                                                   txtOperador.Focus()
-                                                   btnOk.Visibility = Visibility.Visible
-                                                   btnCancelar.Visibility = Visibility.Visible
-                                               End If
-                                           End If
-                                       End Function)
+                                  If Not msgArray.Any(AddressOf msg.ToLower().Contains) Then
+                                      txtOperador.Visibility = Visibility.Visible
+                                      txtOperador.Focus()
+                                      btnOk.Visibility = Visibility.Visible
+                                      btnCancelar.Visibility = Visibility.Visible
+                                  End If
+                              End If
+                          End Sub)
     End Sub
 
     Public Sub printUi(elements As String())
-        Dispatcher.Invoke(Function()
+        Dispatcher.Invoke(Sub()
                               cmbLista.Items.Clear()
                               lblOperador1.Visibility = Visibility.Hidden
                               txtOperador.Visibility = Visibility.Hidden
@@ -170,7 +170,7 @@ Public Class Pagamento
                               cmbLista.Items.Add("Selecione uma opção")
                               cmbLista.SelectedItem = "Selecione uma opção"
                               cmbLista.Visibility = Visibility.Visible
-                          End Function)
+                          End Sub)
     End Sub
 
     Public Sub ShowQRCode(hexString As String)
@@ -211,10 +211,10 @@ Public Class Pagamento
         If header Then _output += div
         _output += logs
         If footer Then _output += div
-        Dispatcher.Invoke(Function()
+        Dispatcher.Invoke(Sub()
                               LogsEntry.Text += _output & vbLf
                               LogsEntry.ScrollToEnd()
-                          End Function)
+                          End Sub)
     End Sub
 
     ' //===================================================================== //
