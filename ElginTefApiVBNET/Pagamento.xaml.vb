@@ -18,6 +18,7 @@ Public Class Pagamento
     Public Shared Property Operacao As Integer = OPERACAO_TEF
 
 
+    ' evento dos botões do teclado numérico, escrevendo seus números no label do valor da venda
     Private Sub Button_Click(sender As Object, e As RoutedEventArgs)
         Dim b As Button = CType(sender, Button)
 
@@ -38,6 +39,7 @@ Public Class Pagamento
         End If
     End Sub
 
+    ' apaga último número escrito no label de venda
     Private Sub BtnBS_Click(sender As Object, e As RoutedEventArgs)
         valorTotal = valorTotal.Remove(LblValor.Text.Length - 1)
         Dim cleanString As String = Regex.Replace(valorTotal, "[^\d]", "")
@@ -53,12 +55,13 @@ Public Class Pagamento
         LblValor.Text = valorTotal
     End Sub
 
+    ' apaga valor da venda
     Private Sub BtnClear_Click(sender As Object, e As RoutedEventArgs)
         valorTotal = ""
         LblValor.Text = "0.00"
     End Sub
 
-    ' UI
+    ' evento botão de débito, inicializa processo e entra no loop principal
 
     Private Async Sub BtnIniciarOperacaoTEF_Click(sender As Object, e As RoutedEventArgs)
         Operacao = OPERACAO_TEF
@@ -75,6 +78,7 @@ Public Class Pagamento
         btnIniciarOperacaoTEF.IsEnabled = True
     End Sub
 
+    ' evento botão de débito, inicializa processo e entra no loop principal
     Private Async Sub BtnIniciarOperacaoPIX_Click(sender As Object, e As RoutedEventArgs)
         Operacao = OPERACAO_PIX
         lblOperador1.Visibility = Visibility.Visible
@@ -90,6 +94,7 @@ Public Class Pagamento
         btnIniciarOperacaoTEF.IsEnabled = True
     End Sub
 
+    ' evento do botão dinâmico prosseguir
     Private Sub btnOk_Click(sender As Object, e As RoutedEventArgs)
         RetornoUI = ""
         Dim retCmb As String = cmbLista.SelectedIndex.ToString()
@@ -112,6 +117,7 @@ Public Class Pagamento
         clickEvent.[Set]()
     End Sub
 
+    ' evento do botão dinâmico "Cancelar" 
     Private Sub btnCancelar_Click(sender As Object, e As RoutedEventArgs)
         RetornoUI = "0"
         cancelarColeta = "9"
@@ -138,6 +144,7 @@ Public Class Pagamento
                               Else
                                   lblOperador1.Content = msg
                                   lblOperador1.Visibility = Visibility.Visible
+                                  ' quando uma dessas mensagens estiver presente não mostrar os botões
                                   Dim msgArray As String() = {"aguarde", "finalizada", "passagem", "cancelada", "iniciando confirmação"}
 
                                   If Not msgArray.Any(AddressOf msg.ToLower().Contains) Then
@@ -174,8 +181,10 @@ Public Class Pagamento
     End Sub
 
     Public Sub ShowQRCode(hexString As String)
+        ' convert hex to byte array
         Dim imageBytes As Byte() = HexToByteArray(hexString)
 
+        ' create memoryStream that wraps the byte array
         Using stream As MemoryStream = New MemoryStream(imageBytes)
             Dim qrImage As BitmapImage = New BitmapImage()
             qrImage.BeginInit()
@@ -229,25 +238,45 @@ Public Class Pagamento
         Try
             ControleApi.SetClientTCP("127.0.0.1", 60906)
             ControleApi.ConfigurarDadosPDV("Meu PDV VB.NET", "v1.0.000", "Elgin", "01", "T0004")
-            Dim start As String = iniciar()
-            Dim retorno As String = ControleApi.getRetorno(start)
 
+            ' 1) INICIAR CONEXAO COM CLIENT
+            Dim start As String = iniciar()
+
+            Dim retorno As String = ControleApi.getRetorno(start)
             If retorno = String.Empty OrElse retorno <> "1" Then
                 finalizar()
             End If
 
+            ' 2) REALIZAR OPERAÇÃO
             Dim sequencial As String = ControleApi.getSequencial(start)
             sequencial = ControleApi.incrementarSequencial(sequencial)
+
+            ' string resp = vender(0, sequencial);   // Pgto --> Perguntar tipo do cartao
+            'tring resp = vender(1, sequencial);   // Pgto --> Cartao de credito
+            'String resp = vender(2, sequencial);   // Pgto --> Cartao de debito
+            'String resp = vender(3, sequencial);   // Pgto --> Voucher (debito)
+            'String resp = vender(4, sequencial);   // Pgto --> Frota (debito)
+            'String resp = vender(5, sequencial);   // Pgto --> Private label (credito)
+            'String resp = adm(0, sequencial);      // Adm  --> Perguntar operacao
+            'String resp = adm(1, sequencial);      // Adm  --> Cancelamento
+            'String resp = adm(2, sequencial);      // Adm  --> Pendencias
+            'String resp = adm(3, sequencial);      // Adm  --> Reimpressao
+
             Dim resp As String = String.Empty
 
+            ' Continuar operacao/iniciar o processo de coleta
+
             If ControleApi.ModoOperacao.Contains("vender") Then
+                ' coletar vendas
                 resp = If(Operacao = OPERACAO_TEF, vender(0, sequencial, OPERACAO_TEF), vender(0, sequencial, OPERACAO_PIX))
             Else
+                ' coletar adms
                 resp = adm(0, sequencial)
             End If
 
             retorno = ControleApi.getRetorno(resp)
 
+            ' 3) VERIFICAR RESULTADO / CONFIRMAR 
             If retorno = String.Empty Then
 
                 If ControleApi.ModoOperacao.Contains("vender") Then
@@ -260,16 +289,22 @@ Public Class Pagamento
             End If
 
             If retorno = String.Empty Then
+
                 WriteLogs(True, "ERRO AO COLETAR DADOS", True)
                 Print("ERRO AO COLETAR DADOS")
+
             ElseIf retorno = "0" Then
+
                 Dim comprovanteLoja As String = ControleApi.getComprovante(resp, "loja")
                 Dim comprovanteCliente As String = ControleApi.getComprovante(resp, "cliente")
                 WriteLogs(True, comprovanteLoja, True)
                 WriteLogs(True, comprovanteCliente, True)
+
                 WriteLogs(True, "TRANSAÇÃO OK, INICIANDO CONFIRMAÇÃO...", True)
                 Print("TRANSAÇÃO OK, INICIANDO CONFIRMAÇÃO...")
                 sequencial = ControleApi.getSequencial(resp)
+
+                ' confirma a operação através do sequencial utilizado
                 Dim cnf As String = confirmar(sequencial)
                 retorno = ControleApi.getRetorno(cnf)
 
@@ -287,6 +322,7 @@ Public Class Pagamento
             Dim [end] As String = finalizar()
             retorno = ControleApi.getRetorno([end])
 
+            ' 4) FINALIZAR CONEXÃO
             If retorno = String.Empty OrElse retorno <> "1" Then
                 finalizar()
             End If
@@ -303,6 +339,21 @@ Public Class Pagamento
 
     Public Function iniciar() As String
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
+
+        ' payload.Add("aplicacao",         "Meu PDV");
+        'payload.Add("aplicacao_tela", "Meu PDV");
+        'payload.Add("versao", "v0.0.001");
+        'payload.Add("estabelecimento", "Elgin");
+        'payload.Add("loja", "01");
+        'payload.Add("terminal", "T0004");
+
+        'payload.Add("nomeAC", "Meu PDV");
+        'payload.Add("textoPinpad", "Meu PDV");
+        'payload.Add("versaoAC", "v0.0.001");
+        'payload.Add("nomeEstabelecimento", "Elgin");
+        'payload.Add("loja", "01");
+        'payload.Add("identificadorPontoCaptura", "T0004");
+
         Dim _intptr As IntPtr = ControleApi.IniciarOperacaoTEF(ControleApi.stringify(payload))
         Dim start As String = Marshal.PtrToStringAnsi(_intptr)
         WriteLogs(True, ControleApi.__Function() & "  " & start, True)
@@ -314,6 +365,7 @@ Public Class Pagamento
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
         payload.Add("sequencial", sequencial)
 
+        ' se um valor tiver sido escrito antes da transação, usar esse valor em centavos
         If valorTotal <> String.Empty Then
             valorTotal = Regex.Replace(valorTotal, "[^\d]", "")
             payload.Add("valorTotal", valorTotal)
@@ -337,6 +389,12 @@ Public Class Pagamento
         WriteLogs(True, ControleApi.__Function() & " SEQUENCIAL UTILIZADO NA VENDA: " & sequencial, True)
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
         payload.Add("sequencial", sequencial)
+
+        ' payload.Add("transacao_administracao_usuario", ADM_USUARIO);
+        ' payload.Add("transacao_administracao_senha", ADM_SENHA);
+        ' payload.Add("admUsuario", ADM_USUARIO);
+        ' payload.Add("admSenha", ADM_SENHA);
+
         Dim _intptr As IntPtr = ControleApi.RealizarAdmTEF(opcao, ControleApi.stringify(payload), True)
         Dim admRed As String = Marshal.PtrToStringAnsi(_intptr)
         WriteLogs(True, ControleApi.__Function() & "  " & admRed, True)
@@ -344,20 +402,30 @@ Public Class Pagamento
     End Function
 
     Public Function coletar(operacao As Integer, root As IDictionary(Of String, Object)) As String
+        ' chaves utilizadas na coleta
         Dim coletaRetorno, coletaSequencial, coletaMensagem, coletaTipo, coletaOpcao, coletaInformacao As String
+
+        ' extrai os dados da resposta / coleta
         coletaRetorno = ControleApi.getStringValue(root, "tef", "automacao_coleta_retorno")
         coletaSequencial = ControleApi.getStringValue(root, "tef", "automacao_coleta_sequencial")
         coletaMensagem = ControleApi.getStringValue(root, "tef", "mensagemResultado")
         coletaTipo = ControleApi.getStringValue(root, "tef", "automacao_coleta_tipo")
         coletaOpcao = ControleApi.getStringValue(root, "tef", "automacao_coleta_opcao")
+
         WriteLogs(True, ControleApi.__Function() & " " & coletaMensagem.ToUpper(), True)
         Print(coletaMensagem.ToUpper())
+
+        ' em caso de erro, encerra coleta
         If coletaRetorno <> "0" Then Return ControleApi.stringify(root)
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
+
+        ' em caso de sucesso, monta o (novo ) payload e continua a coleta
         payload.Add("automacao_coleta_retorno", coletaRetorno)
         payload.Add("automacao_coleta_sequencial", coletaSequencial)
 
+        ' coleta dado do usuário, caso necessário
         If coletaTipo <> String.Empty AndAlso coletaOpcao = String.Empty Then
+            ' valor inserido (texto)
             WriteLogs(True, "INFORME O VALOR SOLICITADO: ", True)
             coletaInformacao = Read()
 
@@ -369,6 +437,7 @@ Public Class Pagamento
 
             payload.Add("automacao_coleta_informacao", coletaInformacao)
         ElseIf coletaTipo <> String.Empty AndAlso coletaOpcao <> String.Empty Then
+            ' valor selecionado (lista)
             Dim opcoes As String() = coletaOpcao.Split(Char.Parse(";"))
             Dim elements As String() = New String(opcoes.Length - 1) {}
 
@@ -393,6 +462,7 @@ Public Class Pagamento
             payload.Add("automacao_coleta_informacao", coletaInformacao)
         End If
 
+        ' informa os dados coletados
         Dim resp As String
 
         If operacao = 1 Then
@@ -409,9 +479,11 @@ Public Class Pagamento
             End If
         End If
 
+        ' verifica fim da coleta
         Dim retorno As String = ControleApi.getRetorno(resp)
 
         If retorno <> String.Empty Then
+            ' fim da coleta
             Return resp
         End If
 
@@ -428,7 +500,7 @@ Public Class Pagamento
     End Function
 
     Public Function finalizar() As String
-        Dim _intptr As IntPtr = ControleApi.FinalizarOperacaoTEF(1)
+        Dim _intptr As IntPtr = ControleApi.FinalizarOperacaoTEF(1) ' api resolve o sequencial
         Dim [end] As String = Marshal.PtrToStringAnsi(_intptr)
         WriteLogs(True, ControleApi.__Function() & [end], True)
         valorTotal = String.Empty
