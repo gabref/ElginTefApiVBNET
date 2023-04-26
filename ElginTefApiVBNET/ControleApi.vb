@@ -61,7 +61,7 @@ Public Class ControleApi
     ' //============ METODOS UTILITÁRIOS PARA O EXEMPLO C# ================== //
     ' //===================================================================== //
 
-    Public Shared Function incrementarSequencial(ByVal sequencial As String) As String
+    Public Shared Function incrementarSequencial(sequencial As String) As String
         Dim ok As Boolean
         Dim value As Double = Nothing
         ok = Double.TryParse(sequencial, value) AndAlso Not Double.IsNaN(value) AndAlso Not Double.IsInfinity(value)
@@ -70,17 +70,17 @@ Public Class ControleApi
         Return value.ToString()
     End Function
 
-    Public Shared Function getRetorno(ByVal resp As String) As String
+    Public Shared Function getRetorno(resp As String) As String
         Dim _jsonDic As IDictionary(Of String, Object) = jsonify(resp)
         Return getStringValue(_jsonDic, "tef", "retorno")
     End Function
 
-    Public Shared Function getSequencial(ByVal resp As String) As String
+    Public Shared Function getSequencial(resp As String) As String
         Dim _jsonDic As IDictionary(Of String, Object) = jsonify(resp)
         Return getStringValue(_jsonDic, "tef", "sequencial")
     End Function
 
-    Public Shared Function getComprovante(ByVal resp As String, ByVal via As String) As String
+    Public Shared Function getComprovante(resp As String, via As String) As String
         If via = "loja" Then
             Dim _jsonDic As IDictionary(Of String, Object) = jsonify(resp)
             Return getStringValue(_jsonDic, "tef", "comprovanteDiferenciadoLoja")
@@ -92,7 +92,7 @@ Public Class ControleApi
         End If
     End Function
 
-    Public Shared Function jsonify(ByVal jsonString As String) As IDictionary(Of String, Object)
+    Public Shared Function jsonify(jsonString As String) As IDictionary(Of String, Object)
         If jsonString IsNot Nothing Then
             Dim _Dic As IDictionary(Of String, Object) = JsonConvert.DeserializeObject(Of Dictionary(Of String, Object))(jsonString)
             Return _Dic
@@ -102,11 +102,11 @@ Public Class ControleApi
         End If
     End Function
 
-    Public Shared Function stringify(ByVal _jsonDic As IDictionary(Of String, Object)) As String
+    Public Shared Function stringify(_jsonDic As IDictionary(Of String, Object)) As String
         Return JsonConvert.SerializeObject(_jsonDic, Formatting.Indented)
     End Function
 
-    Public Shared Function getStringValue(ByVal dicJson As IDictionary(Of String, Object), ByVal keyOut As String, ByVal keyIn As String) As String
+    Public Shared Function getStringValue(dicJson As IDictionary(Of String, Object), keyOut As String, keyIn As String) As String
         Dim value As Object = Nothing, valueIn As Object = Nothing
 
         If dicJson IsNot Nothing AndAlso dicJson.TryGetValue(keyOut, value) Then
@@ -123,7 +123,7 @@ Public Class ControleApi
         End If
     End Function
 
-    Public Shared Function getStringValue(ByVal dicJson As IDictionary(Of String, Object), ByVal key As String) As String
+    Public Shared Function getStringValue(dicJson As IDictionary(Of String, Object), key As String) As String
         Dim value As Object = Nothing
 
         If dicJson IsNot Nothing AndAlso dicJson.TryGetValue(key, value) Then

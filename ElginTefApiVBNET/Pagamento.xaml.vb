@@ -60,7 +60,7 @@ Public Class Pagamento
 
     ' UI
 
-    Private Async Sub BtnIniciarOperacaoTEF_Click(ByVal sender As Object, ByVal e As RoutedEventArgs)
+    Private Async Sub BtnIniciarOperacaoTEF_Click(sender As Object, e As RoutedEventArgs)
         Operacao = OPERACAO_TEF
         lblOperador1.Visibility = Visibility.Visible
         lblOperador1.Content = "AGUARDE..."
@@ -75,7 +75,7 @@ Public Class Pagamento
         btnIniciarOperacaoTEF.IsEnabled = True
     End Sub
 
-    Private Async Sub BtnIniciarOperacaoPIX_Click(ByVal sender As Object, ByVal e As RoutedEventArgs)
+    Private Async Sub BtnIniciarOperacaoPIX_Click(sender As Object, e As RoutedEventArgs)
         Operacao = OPERACAO_PIX
         lblOperador1.Visibility = Visibility.Visible
         lblOperador1.Content = "AGUARDE..."
@@ -90,7 +90,7 @@ Public Class Pagamento
         btnIniciarOperacaoTEF.IsEnabled = True
     End Sub
 
-    Private Sub btnOk_Click(ByVal sender As Object, ByVal e As RoutedEventArgs)
+    Private Sub btnOk_Click(sender As Object, e As RoutedEventArgs)
         RetornoUI = ""
         Dim retCmb As String = cmbLista.SelectedIndex.ToString()
         Dim retTxt As String = txtOperador.Text
@@ -112,13 +112,13 @@ Public Class Pagamento
         clickEvent.[Set]()
     End Sub
 
-    Private Sub btnCancelar_Click(ByVal sender As Object, ByVal e As RoutedEventArgs)
+    Private Sub btnCancelar_Click(sender As Object, e As RoutedEventArgs)
         RetornoUI = "0"
         cancelarColeta = "9"
         clickEvent.[Set]()
     End Sub
 
-    Public Sub printUi(ByVal msg As String)
+    Public Sub printUi(msg As String)
         Dim unused = Dispatcher.Invoke(Function()
                                            lblOperador1.Visibility = Visibility.Hidden
                                            txtOperador.Visibility = Visibility.Hidden
@@ -150,7 +150,7 @@ Public Class Pagamento
                                        End Function)
     End Sub
 
-    Public Sub printUi(ByVal elements As String())
+    Public Sub printUi(elements As String())
         Dispatcher.Invoke(Function()
                               cmbLista.Items.Clear()
                               lblOperador1.Visibility = Visibility.Hidden
@@ -173,7 +173,7 @@ Public Class Pagamento
                           End Function)
     End Sub
 
-    Public Sub ShowQRCode(ByVal hexString As String)
+    Public Sub ShowQRCode(hexString As String)
         Dim imageBytes As Byte() = HexToByteArray(hexString)
 
         Using stream As MemoryStream = New MemoryStream(imageBytes)
@@ -186,7 +186,7 @@ Public Class Pagamento
         End Using
     End Sub
 
-    Private Function HexToByteArray(ByVal hexString As String) As Byte()
+    Private Function HexToByteArray(hexString As String) As Byte()
         If hexString Is Nothing Then
             Throw New ArgumentNullException("hexString")
         End If
@@ -205,7 +205,7 @@ Public Class Pagamento
         Return result
     End Function
 
-    Public Sub WriteLogs(ByVal header As Boolean, ByVal logs As String, ByVal footer As Boolean)
+    Public Sub WriteLogs(header As Boolean, logs As String, footer As Boolean)
         Const div As String = vbLf & "==============================================" & vbLf
         Dim _output As String = ""
         If header Then _output += div
@@ -309,7 +309,7 @@ Public Class Pagamento
         Return start
     End Function
 
-    Public Function vender(ByVal cartao As Integer, ByVal sequencial As String, ByVal operacao As Integer) As String
+    Public Function vender(cartao As Integer, sequencial As String, operacao As Integer) As String
         WriteLogs(True, ControleApi.__Function() & " SEQUENCIAL UTILIZADO NA VENDA: " & sequencial, True)
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
         payload.Add("sequencial", sequencial)
@@ -333,7 +333,7 @@ Public Class Pagamento
         Return pgto
     End Function
 
-    Public Function adm(ByVal opcao As Integer, ByVal sequencial As String) As String
+    Public Function adm(opcao As Integer, sequencial As String) As String
         WriteLogs(True, ControleApi.__Function() & " SEQUENCIAL UTILIZADO NA VENDA: " & sequencial, True)
         Dim payload As IDictionary(Of String, Object) = New Dictionary(Of String, Object)()
         payload.Add("sequencial", sequencial)
@@ -343,7 +343,7 @@ Public Class Pagamento
         Return admRed
     End Function
 
-    Public Function coletar(ByVal operacao As Integer, ByVal root As IDictionary(Of String, Object)) As String
+    Public Function coletar(operacao As Integer, root As IDictionary(Of String, Object)) As String
         Dim coletaRetorno, coletaSequencial, coletaMensagem, coletaTipo, coletaOpcao, coletaInformacao As String
         coletaRetorno = ControleApi.getStringValue(root, "tef", "automacao_coleta_retorno")
         coletaSequencial = ControleApi.getStringValue(root, "tef", "automacao_coleta_sequencial")
@@ -418,7 +418,7 @@ Public Class Pagamento
         Return coletar(operacao, ControleApi.jsonify(resp))
     End Function
 
-    Public Function confirmar(ByVal sequencial As String) As String
+    Public Function confirmar(sequencial As String) As String
         WriteLogs(True, ControleApi.__Function() & "SEQUENCIAL DA OPERAÇÃO A SER CONFIRMADA: " & sequencial, True)
         Print("AGUARDE, CONFIRMANDO OPERAÇÃO...")
         Dim _intptr As IntPtr = ControleApi.ConfirmarOperacaoTEF(Integer.Parse(sequencial), 1)
@@ -442,11 +442,11 @@ Public Class Pagamento
     ' //============ METODOS UTILITÁRIOS PARA O EXEMPLO C# ================== //
     ' //===================================================================== //
 
-    Public Sub Print(ByVal msg As String)
+    Public Sub Print(msg As String)
         printUi(msg)
     End Sub
 
-    Public Sub Print(ByVal elements As String())
+    Public Sub Print(elements As String())
         printUi(elements)
     End Sub
 
