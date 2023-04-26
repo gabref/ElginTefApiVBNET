@@ -22,27 +22,48 @@ Public Class ColetaPinPad
 
 
     Private Sub Button_Click(sender As Object, e As RoutedEventArgs)
+
+        ' as funções de coleta dos valores com o pinpad não dependem do fluxo de transação
+        ' da api (como descrito na documentação), mas precisam que a conexão com o pinpad 
+        ' esteja aberta. A conexão com o pinpad fica aberta entre os passos 1 e 4 descritos
+        ' na documentação, ou seja, entre o uso das funções IniciarOperacaoTEF e FinalizarOperacaoTEF.
+
+        ' inicia a conexão do tef
+
         lblValorColetado.Content = "_"
         txtLogs.Text = "INICIANDO OPERAÇÃO"
         Dim cmbIndex As Integer = cmbTipoColeta.SelectedIndex
 
+        ' selecione o index da combobox
         If cmbIndex = -1 Then
             MessageBox.Show("Selecione o tipo da operação")
             cmbTipoColeta.Focus()
             Return
         End If
 
+        ' inicia operação tef
         Dim _intptr As IntPtr = ControleApi.IniciarOperacaoTEF("{}")
         Dim start As String = Marshal.PtrToStringAnsi(_intptr)
         txtLogs.Text += start
+
+        ' adiciona 1 para corresponder aos valores na documentação
+        ' 1 - RG
+        ' 2 - CPF
+        ' 3 - CNPJ
+        ' 4 - Telefone
         Dim tipoColeta As Integer = cmbIndex + 1
         Dim confirmar As Boolean = rdbConfirm.IsChecked
+
+        ' logas das opções escolhidas
         txtLogs.Text += hrLogs
         txtLogs.Text += vbLf & "OPÇÕES ESCOLHIDAS" & vbLf & "tipoColeta: " & tipoColeta & vbLf & "confirmar: " & confirmar
+
+        ' realiza a coleta
         Dim _intptrColeta As IntPtr = ControleApi.RealizarColetaPinPad(tipoColeta, confirmar)
         Dim coleta As String = Marshal.PtrToStringAnsi(_intptrColeta)
-        Dim resultadoPinPad As String
 
+        ' checker se a operação foi bem sucedida ou não
+        Dim resultadoPinPad As String
         If Integer.Parse(getRetorno(coleta)) = 1 Then
             resultadoPinPad = getStringValue(jsonify(coleta), "tef", "resultadoCapturaPinPad")
             txtLogs.Text += vbLf & "RESULTADO CAPTURA: " & resultadoPinPad
@@ -52,9 +73,15 @@ Public Class ColetaPinPad
             Return
         End If
 
+        ' logs do retorno da DLL
         txtLogs.Text += hrLogs
         txtLogs.Text += vbLf & "RETORNO DLL: RealizarcoletaPinPad"
         txtLogs.Text += coleta
+
+
+        ' se a variável <confirmar> for true, a confirmação será feita automaticamente
+        'caso o desenvolvedor queira fazer algo com o valor antes da confirmação,
+        'ele pode usar a função ConfirmarCapturaPinPad como exemplificado a seguir
 
         If confirmar Then
             finalizar(vbLf & "FIM DA OPERAÇÃO")
@@ -64,6 +91,8 @@ Public Class ColetaPinPad
         txtLogs.Text += hrLogs
         txtLogs.Text += vbLf & "INICIANDO CONFIRMAÇÃO"
 
+        ' faz algo com o valor coletado
+        'nesse exemplo são adicionadas as máscaras dos valores
         Select Case tipoColeta
             Case 1
                 resultadoPinPad = FormatRG(resultadoPinPad)
@@ -79,23 +108,29 @@ Public Class ColetaPinPad
         Dim ptrRealizaConfirmacao As IntPtr = ControleApi.ConfirmarCapturaPinPad(tipoColeta, resultadoPinPad)
         Dim retornoConfirmacao As String = Marshal.PtrToStringAnsi(ptrRealizaConfirmacao)
 
+        ' checkar se a operação foi bem sucedida ou não
         If Integer.Parse(getRetorno(retornoConfirmacao)) = 1 Then
+            ' pega o valor digitado pelo usuário no pinpad
             resultadoPinPad = getStringValue(jsonify(retornoConfirmacao), "tef", "resultadoCapturaPinPad")
             txtLogs.Text += vbLf & "RESULTADO CONFIRMAÇÃO: " & resultadoPinPad
             lblValorColetado.Content = resultadoPinPad
+            ' logs do retorno da DLL
             txtLogs.Text = vbLf & "RETORNO DLL: ConfirmarCapturaPinPad" & retornoConfirmacao
         Else
             finalizar(getStringValue(jsonify(retornoConfirmacao), "tef", "mensagemResultado"))
             Return
         End If
 
+        ' finalizar operação
         finalizar("FIM DA OPERAÇÃO")
     End Sub
 
     Private Sub finalizar(reason As String)
         txtLogs.Text += hrLogs
         txtLogs.Text += "FINALIZANDO OPERAÇÃO - REASON: " & reason
-        Dim _ptrRetorno As IntPtr = ControleApi.FinalizarOperacaoTEF(1)
+
+        ' finalizando operação
+        Dim _ptrRetorno As IntPtr = ControleApi.FinalizarOperacaoTEF(1) ' api resolve o sequencial
         Dim retorno As String = Marshal.PtrToStringAnsi(_ptrRetorno)
 
         If Integer.Parse(getRetorno(retorno)) = 1 Then
