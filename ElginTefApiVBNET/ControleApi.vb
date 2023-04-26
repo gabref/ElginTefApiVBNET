@@ -3,6 +3,11 @@
 Public Class ControleApi
     Public Shared Property ModoOperacao As String = String.Empty
 
+
+    ' ===================================================================== //
+    ' ============ CARREGAMENTO DAS FUNÇÕES DA DLL ================== //
+    ' ===================================================================== //
+
     Public Const PATH As String = "..\..\E1_Tef01.dll"
 
     <DllImport(PATH, CallingConvention:=CallingConvention.StdCall)>
