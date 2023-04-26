@@ -1,4 +1,9 @@
-﻿Public Class Administrativa
+﻿Imports System.IO
+Imports System.Runtime.InteropServices
+Imports System.Text.RegularExpressions
+Imports System.Threading
+
+Public Class Administrativa
     Private Sub BtnIniciarOperacao_Click(sender As Object, e As RoutedEventArgs)
 
     End Sub

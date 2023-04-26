@@ -52,6 +52,14 @@ Public Class ControleApi
     End Function
 
     <DllImport(PATH, CallingConvention:=CallingConvention.StdCall)>
+    Friend Shared Function RealizarColetaPinPad(tipoColeta As Integer, confirmar As Boolean) As IntPtr
+    End Function
+
+    <DllImport(PATH, CallingConvention:=CallingConvention.StdCall)>
+    Friend Shared Function ConfirmarCapturaPinPad(tipoColeta As Integer, dadosCaptura As String) As IntPtr
+    End Function
+
+    <DllImport(PATH, CallingConvention:=CallingConvention.StdCall)>
     Friend Shared Function FinalizarOperacaoTEF(id As Integer) As IntPtr
     End Function
 
